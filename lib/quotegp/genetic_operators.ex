@@ -1,56 +1,30 @@
 defmodule QuoteGP.GeneticOperators do
-  def code_tree(0) do
-    terminal()
+  def mutation(tree = {operator, meta, args}, prob) do
+    case :rand.uniform() < prob do
+      true -> QuoteGP.Generation.code_tree(QuoteGP.Generation.tree_depth(tree))
+      false -> {operator, meta, arguments(args, prob)}
+    end
   end
 
-  def code_tree(max_depth) do
-    {operator, meta, arity} = Enum.random(operators())
-    List.to_tuple([ operator, meta, operands(arity, max_depth - 1) ])
+  def mutation(terminal, prob) do
+    case :rand.uniform() < prob do
+      true -> QuoteGP.Generation.code_tree(0)
+      false -> terminal
+    end
   end
 
-  def operands(0, _) do
-    []
+  defp arguments(args, prob) when is_list(args) do
+    Enum.map(args, fn a -> mutation(a, prob) end)
   end
 
-  def operands(0, _) do
-    []
+  defp arguments(args, _) do
+    args
   end
 
+  def crossover(a, b) do
+    subtree =
+      QuoteGP.Generation.subtree_with_index(b, :rand.uniform(QuoteGP.Generation.tree_points(b)) - 1)
 
-  def operands(arity, max_depth) do
-    [code_tree(rand(max_depth)) | operands(arity - 1, max_depth)]
+    QuoteGP.Generation.replace_index(a, subtree, :rand.uniform(QuoteGP.Generation.tree_points(a)) - 1)
   end
-
-  def terminal do
-    1
-  end
-
-  def operators do
-    [{:+, [context: Elixir, import: Kernel], 2}, {:-, [context: Elixir, import: Kernel], 2}, {{:., [],
-      [
-        {:__aliases__, [alias: false], [:QuoteGP, :GeneticOperators]},
-        :protected_divide
-      ]}, [context: Elixir, import: Kernel], 2}, {:*, [context: Elixir, import: Kernel], 2}]
-  end
-
-  def rand(0) do
-    0
-  end
-
-  def rand(i) do
-    :rand.uniform(i)
-  end
-
-  def protected_divide(x, 0) do
-    0
-  end
-
-  def protected_divide(x, 0.0) do
-    0
-  end
-
-  def protected_divide(x, y) do
-    x / y
-  end
-
 end
