@@ -69,7 +69,7 @@ defmodule QuoteGP.Population do
     end
   end
 
-  def tournament(individuals, n \\ 5) do
+  def tournament(individuals, n \\ 9) do
     Enum.take_random(individuals, n)
     |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
     |> Enum.at(0)
@@ -77,6 +77,12 @@ defmodule QuoteGP.Population do
   end
 
   def next_individual(evaluated_population) do
-    if(:rand.uniform() < 0.3, do: crossover(tournament(evaluated_population), tournament(evaluated_population)), else: mutation(tournament(evaluated_population), 0.3))
+    method = :rand.uniform()
+
+    cond do
+      method < 0.2 -> crossover(tournament(evaluated_population), tournament(evaluated_population))
+      method < 0.9 -> mutation(tournament(evaluated_population), 0.1)
+      true -> tournament(evaluated_population)
+    end
   end
 end

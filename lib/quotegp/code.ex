@@ -22,17 +22,21 @@ defmodule QuoteGP.Code do
 
   @doc """
   Performs a protected divide - division with a guard for dividing by 0, such
-  that n / 0 -> 0
+  that n / 0 -> n
   """
-  def _ / 0 do
-    0
+  def i / 0 do
+    i
   end
 
-  def _ /0.0 do
-    0
+  def i /0.0 do
+    i
   end
 
   def x / y do
     Kernel./(x, y)
+  end
+
+  def power(x, _) do
+    x
   end
 end

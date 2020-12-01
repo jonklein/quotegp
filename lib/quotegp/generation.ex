@@ -2,13 +2,13 @@ defmodule QuoteGP.Generation do
   require QuoteGP.Code
   import QuoteGP.Code
 
-  def code_tree(0) do
+  def code_tree(n) when n <= 1 do
     terminal()
   end
 
   def code_tree(max_depth) do
     {operator, meta, arity} = Enum.random(operators())
-    List.to_tuple([ operator, meta, Enum.map(1..arity, fn _ -> code_tree(rand(max_depth - 1)) end) ])
+    List.to_tuple([ operator, meta, Enum.map(1..arity, fn _ -> code_tree(rand(max_depth) - 1) end) ])
   end
 
   @doc """
@@ -80,7 +80,7 @@ defmodule QuoteGP.Generation do
 
 
   def terminal do
-    if(:rand.uniform() < 0.1, do: Code.string_to_quoted!("input"), else: :rand.uniform(10))
+    if(:rand.uniform() < 0.1, do: Code.string_to_quoted!("input"), else: :rand.uniform(20) - 10)
   end
 
   def operators do
