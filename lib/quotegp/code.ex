@@ -1,4 +1,5 @@
 defmodule QuoteGP.Code do
+  # We will redefine the division operator with a protected divide.
   import Kernel, except: [/: 2]
 
   @moduledoc """
@@ -12,8 +13,8 @@ defmodule QuoteGP.Code do
   {function, metadata, arity}
   """
   defmacro operator(ex) do
-     {func, meta, args} = ex
-     Macro.escape({func, Keyword.merge(meta, quotegp_operator: true), length(args)})
+    {func, meta, args} = ex
+    Macro.escape({func, Keyword.merge(meta, quotegp_operator: true), length(args)})
   end
 
   def evaluate(code, bindings) do
@@ -28,15 +29,11 @@ defmodule QuoteGP.Code do
     i
   end
 
-  def i /0.0 do
+  def i / 0.0 do
     i
   end
 
   def x / y do
     Kernel./(x, y)
-  end
-
-  def power(x, _) do
-    x
   end
 end

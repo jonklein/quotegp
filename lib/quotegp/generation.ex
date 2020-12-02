@@ -2,13 +2,18 @@ defmodule QuoteGP.Generation do
   require QuoteGP.Code
   import QuoteGP.Code
 
-  def code_tree(n) when n <= 1 do
+  def code_tree(%QuoteGP.Config{max_program_depth: max_depth}) do
+    tree(max_depth)
+  end
+
+  def tree(max_depth) when max_depth <= 1 do
     terminal()
   end
 
-  def code_tree(max_depth) do
+  def tree(max_depth) do
     {operator, meta, arity} = Enum.random(operators())
-    List.to_tuple([ operator, meta, Enum.map(1..arity, fn _ -> code_tree(rand(max_depth) - 1) end) ])
+
+    List.to_tuple([operator, meta, Enum.map(1..arity, fn _ -> tree(rand(max_depth) - 1) end)])
   end
 
   @doc """
@@ -33,13 +38,12 @@ defmodule QuoteGP.Generation do
     1
   end
 
-
   def replace_index([first], subtree, idx) do
-    [ replace_index(first, subtree, idx) ]
+    [replace_index(first, subtree, idx)]
   end
 
-  def replace_index([ first | rest ], subtree, idx) do
-    [ replace_index(first, subtree, idx) | replace_index(rest, subtree, (idx) - tree_points(first))]
+  def replace_index([first | rest], subtree, idx) do
+    [replace_index(first, subtree, idx) | replace_index(rest, subtree, idx - tree_points(first))]
   end
 
   def replace_index(_, subtree, 0) do
@@ -54,10 +58,7 @@ defmodule QuoteGP.Generation do
     tree
   end
 
-
-
-
-  def subtree_with_index([ first | rest ], idx) do
+  def subtree_with_index([first | rest], idx) do
     subtree_with_index(first, idx) || subtree_with_index(rest, idx - tree_points(first))
   end
 
@@ -77,26 +78,28 @@ defmodule QuoteGP.Generation do
     nil
   end
 
-
-
   def terminal do
     if(:rand.uniform() < 0.1, do: Code.string_to_quoted!("input"), else: :rand.uniform(20) - 10)
   end
 
+  @doc """
+  Defines the basic operators that the GP can use.
+
+  We use the operator macro here to generate an AST chunk for a given expression.
+  Arguments to the expression function are replaced by terminals, so are just
+  placeholders in this usafe.
+  """
   def operators do
     [
-      operator(1 + 1),
-      operator(1 - 1),
-      operator(1 * 1),
-      operator(1 / 1)
+      operator(n + n),
+      operator(n - n),
+      operator(n * n),
+      operator(n / n)
     ]
   end
 
-  def rand(0) do
-    0
-  end
 
-  def rand(i) do
-    :rand.uniform(i)
+  defp rand(i) do
+    :rand.uniform(i + 1) - 1
   end
 end

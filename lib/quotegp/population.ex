@@ -1,54 +1,61 @@
 defmodule QuoteGP.Population do
-  @max_fitness 999999999
+  defstruct individuals: [],
+            generation: 0,
+            config: %QuoteGP.Config{}
+
+  @max_fitness 999_999_999
 
   @moduledoc """
-  Code operations and utilities.
+  A GP population
   """
 
   import QuoteGP.GeneticOperators
 
-  def build(n, max_depth \\ 10)
-
-  def build(0, _) do
-    []
+  def build(config = %QuoteGP.Config{}) do
+    %QuoteGP.Population{
+      config: config,
+      individuals:
+        Enum.map(1..config.population_size, fn _ ->
+          QuoteGP.Generation.code_tree(config)
+        end)
+    }
   end
 
-  def build(n, max_depth) do
-    [QuoteGP.Generation.code_tree(max_depth) | build(n - 1)]
-  end
-
-  def evaluate([], _) do
-    []
-  end
-
-  def evaluate([individual | rest], cases) do
-    [{individual, fitness(individual, cases)} | evaluate(rest, cases)]
+  def evaluate(population = %QuoteGP.Population{}, cases) do
+    %{
+      population
+      | individuals:
+          Enum.map(population.individuals, fn i -> {i, fitness(i, cases)} end)
+          |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
+    }
   end
 
   def fitness(individual, cases) do
     try do
       cases
-      |> Enum.map(fn {input, output} -> output - elem(QuoteGP.Code.evaluate(individual, [input: input]), 0) end)
+      |> Enum.map(fn {input, output} ->
+        output - elem(QuoteGP.Code.evaluate(individual, input: input), 0)
+      end)
       |> Enum.map(&(&1 * &1))
-      |> Enum.sum
-
-    rescue err ->
-      IO.inspect("Error evaluating #{Macro.to_string(individual)}")
-      IO.inspect(err)
-      @max_fitness
+      |> Enum.sum()
+    rescue
+      err ->
+        IO.inspect("Error evaluating #{Macro.to_string(individual)}")
+        IO.inspect(err)
+        @max_fitness
     end
   end
 
   def generation(population, cases) do
     evaluated = evaluate(population, cases)
-                |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
 
-    next = (1..length(population))
+    next =
+      1..length(evaluated.individuals)
       |> Enum.map(fn _ -> next_individual(evaluated) end)
 
-    { best, best_fitness } = Enum.at(evaluated, 0)
+    {best, best_fitness} = Enum.at(evaluated.individuals, 0)
 
-    { next, Macro.to_string(best), best_fitness }
+    {next, Macro.to_string(best), best_fitness}
   end
 
   def run(population, cases, max_generations, halt_fitness \\ 0.0)
@@ -57,32 +64,34 @@ defmodule QuoteGP.Population do
     population
   end
 
-  def run(population, cases, max_generations, halt_fitness) do
-    { next, best, best_fitness } = generation(population, cases)
+  def run(population = %QuoteGP.Population{}, cases, max_generations, halt_fitness) do
+    {individuals, best, best_fitness} = generation(population, cases)
 
-    IO.inspect("=== Best fitness: #{best_fitness} - individual: #{best}")
+    IO.inspect(
+      "=== Generation #{population.generation} best fitness: #{best_fitness} - individual: #{best}"
+    )
+
+    next = %{population | individuals: individuals, generation: population.generation + 1}
 
     if best_fitness > halt_fitness do
       run(next, cases, max_generations - 1, halt_fitness)
-    else
-      next
     end
   end
 
-  def tournament(individuals, n \\ 9) do
-    Enum.take_random(individuals, n)
+  def tournament(%QuoteGP.Population{individuals: individuals, config: config}) do
+    Enum.take_random(individuals, config.tournament_size)
     |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
     |> Enum.at(0)
     |> elem(0)
   end
 
-  def next_individual(evaluated_population) do
+  def next_individual(population = %QuoteGP.Population{config: config}) do
     method = :rand.uniform()
 
     cond do
-      method < 0.2 -> crossover(tournament(evaluated_population), tournament(evaluated_population))
-      method < 0.9 -> mutation(tournament(evaluated_population), 0.1)
-      true -> tournament(evaluated_population)
+      method < config.crossover_rate -> crossover(tournament(population), tournament(population))
+      method < (config.mutation_rate + config.crossover_rate) -> mutation(tournament(population), config.mutation_probability)
+      true -> tournament(population)
     end
   end
 end
