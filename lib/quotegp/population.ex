@@ -40,8 +40,8 @@ defmodule QuoteGP.Population do
       |> Enum.sum()
     rescue
       err ->
-        IO.inspect("Error evaluating #{Macro.to_string(individual)}")
-        IO.inspect(err)
+        IO.puts("Error evaluating #{Macro.to_string(individual)}")
+        IO.puts(err)
         @max_fitness
     end
   end
@@ -58,23 +58,27 @@ defmodule QuoteGP.Population do
     {next, Macro.to_string(best), best_fitness}
   end
 
-  def run(population, cases, max_generations, halt_fitness \\ 0.0)
+  def run(population, cases) do
+    run(population, cases, population.config.max_generations)
+  end
 
-  def run(population, _, 0, _) do
+  def run(population, _, 0) do
     population
   end
 
-  def run(population = %QuoteGP.Population{}, cases, max_generations, halt_fitness) do
+  def run(population = %QuoteGP.Population{}, cases, max_generations) do
     {individuals, best, best_fitness} = generation(population, cases)
 
-    IO.inspect(
+    IO.puts(
       "=== Generation #{population.generation} best fitness: #{best_fitness} - individual: #{best}"
     )
 
     next = %{population | individuals: individuals, generation: population.generation + 1}
 
-    if best_fitness > halt_fitness do
-      run(next, cases, max_generations - 1, halt_fitness)
+    if best_fitness > population.config.halt_fitness do
+      run(next, cases, max_generations - 1)
+    else
+      IO.puts("Solution found after #{population.generation} generations")
     end
   end
 

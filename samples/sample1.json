@@ -1,0 +1,22 @@
+{
+  "description": "Symbolic regression problem: x*x + 3*x + 8",
+  "test_cases": [
+    [10, 138],
+    [11, 162],
+    [12, 188],
+    [13, 216],
+    [14, 246],
+    [15, 278],
+    [16, 312]
+  ],
+  "config": {
+    "population_size": 1000,
+    "max_generations": 100,
+    "max_program_depth": 10,
+    "mutation_probability": 0.1,
+    "halt_fitness": 0.0,
+    "mutation_rate": 0.3,
+    "crossover_rate": 0.3,
+    "tournament_size": 9
+  }
+}

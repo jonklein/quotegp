@@ -81,7 +81,7 @@ defmodule QuoteGPTest do
   test "runs a generation" do
     cases = 8..16 |> Enum.map(fn x -> {x, x * x + 3 * x + 8} end)
 
-    QuoteGP.Population.build(%QuoteGP.Config{})
-    |> QuoteGP.Population.run(cases, 100)
+    QuoteGP.Population.build(%QuoteGP.Config{max_generations: 3})
+    |> QuoteGP.Population.run(cases)
   end
 end

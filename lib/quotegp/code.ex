@@ -7,7 +7,7 @@ defmodule QuoteGP.Code do
   """
 
   @doc """
-  A utility function to decompose an Elixir expression into a tuple that
+  A utility macro to decompose an Elixir expression into a tuple that
   can be used as an operator in our QuoteGP system.
 
   {function, metadata, arity}

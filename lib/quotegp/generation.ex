@@ -2,6 +2,9 @@ defmodule QuoteGP.Generation do
   require QuoteGP.Code
   import QuoteGP.Code
 
+  @doc """
+  Builds a code fragment with the maximum depth specified in the config.
+  """
   def code_tree(%QuoteGP.Config{max_program_depth: max_depth}) do
     tree(max_depth)
   end
@@ -12,7 +15,6 @@ defmodule QuoteGP.Generation do
 
   def tree(max_depth) do
     {operator, meta, arity} = Enum.random(operators())
-
     List.to_tuple([operator, meta, Enum.map(1..arity, fn _ -> tree(rand(max_depth) - 1) end)])
   end
 
@@ -38,6 +40,9 @@ defmodule QuoteGP.Generation do
     1
   end
 
+  @doc """
+  Recursively replaces the subtree at the specified `idx` with `subtree`
+  """
   def replace_index([first], subtree, idx) do
     [replace_index(first, subtree, idx)]
   end

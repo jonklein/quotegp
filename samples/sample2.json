@@ -1,0 +1,26 @@
+{
+  "description": "Symbolic regression problem: 3*i*i*i + 12*i - 4",
+  "test_cases": [
+    [5, 431],
+    [6, 716],
+    [7, 1109],
+    [8, 1628],
+    [9, 2291],
+    [10, 3116],
+    [11, 4121],
+    [12, 5324],
+    [13, 6743],
+    [14, 8396],
+    [15, 10301]
+  ],
+  "config": {
+    "population_size": 1000,
+    "max_generations": 100,
+    "max_program_depth": 10,
+    "mutation_probability": 0.2,
+    "halt_fitness": 0.0,
+    "mutation_rate": 0.3,
+    "crossover_rate": 0.6,
+    "tournament_size": 7
+  }
+}

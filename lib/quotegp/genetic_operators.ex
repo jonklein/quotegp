@@ -1,7 +1,9 @@
 defmodule QuoteGP.GeneticOperators do
-  def mutation(tree = {operator, meta, args}, prob) do
+  def mutation({operator, meta, args}, prob) when length(args) > 0 do
     case :rand.uniform() < prob do
-      true -> QuoteGP.Generation.tree(QuoteGP.Generation.tree_depth(tree))
+      true ->
+        {operator, meta, _} = Enum.random(QuoteGP.Generation.operators())
+        {operator, meta, args}
       false -> {operator, meta, mutate_arguments(args, prob)}
     end
   end

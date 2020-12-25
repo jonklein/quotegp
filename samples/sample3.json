@@ -1,0 +1,26 @@
+{
+  "description": "Symbolic regression problem: -9*i*i*i + 2*i*i + 6*i - 22",
+  "test_cases": [
+    [5, -1067],
+    [6, -1858],
+    [7, -2969],
+    [8, -4454],
+    [9, -6367],
+    [10, -8762],
+    [11, -11693],
+    [12, -15214],
+    [13, -19379],
+    [14, -24242],
+    [15, -29857]
+  ],
+  "config": {
+    "population_size": 1000,
+    "max_generations": 100,
+    "max_program_depth": 10,
+    "mutation_probability": 0.3,
+    "halt_fitness": 0.0,
+    "mutation_rate": 0.3,
+    "crossover_rate": 0.6,
+    "tournament_size": 7
+  }
+}
