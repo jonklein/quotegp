@@ -18,7 +18,10 @@ defmodule QuoteGP.Code do
   end
 
   def evaluate(code, bindings) do
-    Code.eval_quoted(code, bindings, functions: [{QuoteGP.Code, [/: 2]}] ++ __ENV__.functions)
+    {result, _} =
+      Code.eval_quoted(code, bindings, functions: [{QuoteGP.Code, [/: 2]}] ++ __ENV__.functions)
+
+    result
   end
 
   @doc """

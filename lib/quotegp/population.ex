@@ -22,19 +22,24 @@ defmodule QuoteGP.Population do
   end
 
   def evaluate(population = %QuoteGP.Population{}, cases) do
-    %{
-      population
-      | individuals:
-          Enum.map(population.individuals, fn i -> {i, fitness(i, cases)} end)
-          |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
-    }
+    # Chunk up our evaluation to potentially take advantage of multiple cores
+    individuals =
+      Enum.chunk_every(population.individuals, 8)
+      |> Enum.map(&Task.async(fn -> Enum.map(&1, fn i -> {i, fitness(i, cases)} end) end))
+      |> Task.await_many()
+      |> List.flatten()
+      |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
+
+    %{population | individuals: individuals}
   end
 
   def fitness(individual, cases) do
+    # The fitness for an individual is the sum of the squares of the errors
+    # (expected output minus actual)
     try do
       cases
       |> Enum.map(fn {input, output} ->
-        output - elem(QuoteGP.Code.evaluate(individual, input: input), 0)
+        output - QuoteGP.Code.evaluate(individual, input: input)
       end)
       |> Enum.map(&(&1 * &1))
       |> Enum.sum()
@@ -49,11 +54,11 @@ defmodule QuoteGP.Population do
   def generation(population, cases) do
     evaluated = evaluate(population, cases)
 
-    next =
-      1..length(evaluated.individuals)
-      |> Enum.map(fn _ -> next_individual(evaluated) end)
-
     {best, best_fitness} = Enum.at(evaluated.individuals, 0)
+
+    next =
+      evaluated.individuals
+      |> Enum.map(fn _ -> next_individual(evaluated) end)
 
     {next, Macro.to_string(best), best_fitness}
   end
@@ -93,9 +98,14 @@ defmodule QuoteGP.Population do
     method = :rand.uniform()
 
     cond do
-      method < config.crossover_rate -> crossover(tournament(population), tournament(population))
-      method < (config.mutation_rate + config.crossover_rate) -> mutation(tournament(population), config.mutation_probability)
-      true -> tournament(population)
+      method < config.crossover_rate ->
+        crossover(tournament(population), tournament(population))
+
+      method < config.mutation_rate + config.crossover_rate ->
+        mutation(tournament(population), config.mutation_probability)
+
+      true ->
+        tournament(population)
     end
   end
 end
