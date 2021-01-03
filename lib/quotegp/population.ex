@@ -16,30 +16,30 @@ defmodule QuoteGP.Population do
       config: config,
       individuals:
         Enum.map(1..config.population_size, fn _ ->
-          QuoteGP.Generation.code_tree(config)
+          QuoteGP.Generation.tree(config)
         end)
     }
   end
 
   def evaluate(population = %QuoteGP.Population{}, cases) do
     # Chunk up our evaluation to potentially take advantage of multiple cores
-    individuals =
-      Enum.chunk_every(population.individuals, 8)
-      |> Enum.map(&Task.async(fn -> Enum.map(&1, fn i -> {i, fitness(i, cases)} end) end))
-      |> Task.await_many()
-      |> List.flatten()
-      |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
-
-    %{population | individuals: individuals}
+    Enum.chunk_every(population.individuals, floor(length(population.individuals) / 32))
+    |> Enum.map(&Task.async(fn -> Enum.map(&1, fn i -> {i, fitness(i, cases)} end) end))
+    |> Task.await_many(10000)
+    |> List.flatten()
+    |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
   end
 
   def fitness(individual, cases) do
     # The fitness for an individual is the sum of the squares of the errors
     # (expected output minus actual)
+
+    size_scalar = max(1.0, QuoteGP.Generation.tree_points(individual) / 400.0)
+
     try do
       cases
       |> Enum.map(fn {input, output} ->
-        output - QuoteGP.Code.evaluate(individual, input: input)
+        (output - QuoteGP.Code.evaluate(individual, input: input)) * size_scalar
       end)
       |> Enum.map(&(&1 * &1))
       |> Enum.sum()
@@ -54,11 +54,11 @@ defmodule QuoteGP.Population do
   def generation(population, cases) do
     evaluated = evaluate(population, cases)
 
-    {best, best_fitness} = Enum.at(evaluated.individuals, 0)
+    {best, best_fitness} = Enum.at(evaluated, 0)
 
     next =
-      evaluated.individuals
-      |> Enum.map(fn _ -> next_individual(evaluated) end)
+      evaluated
+      |> Enum.map(fn _ -> next_individual(population.config, evaluated) end)
 
     {next, Macro.to_string(best), best_fitness}
   end
@@ -87,25 +87,28 @@ defmodule QuoteGP.Population do
     end
   end
 
-  def tournament(%QuoteGP.Population{individuals: individuals, config: config}) do
+  def tournament(config, individuals) do
     Enum.take_random(individuals, config.tournament_size)
     |> Enum.sort(fn {_, f1}, {_, f2} -> f1 < f2 end)
-    |> Enum.at(0)
+    |> hd()
     |> elem(0)
   end
 
-  def next_individual(population = %QuoteGP.Population{config: config}) do
+  def next_individual(config, individuals) do
     method = :rand.uniform()
 
     cond do
       method < config.crossover_rate ->
-        crossover(tournament(population), tournament(population))
+        crossover(tournament(config, individuals), tournament(config, individuals))
 
       method < config.mutation_rate + config.crossover_rate ->
-        mutation(tournament(population), config.mutation_probability)
+        mutation(config, tournament(config, individuals), config.mutation_probability)
+
+      method < config.mutation_rate + config.crossover_rate + config.random_rate ->
+        QuoteGP.Generation.tree(config)
 
       true ->
-        tournament(population)
+        tournament(config, individuals)
     end
   end
 end

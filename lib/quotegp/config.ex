@@ -5,6 +5,14 @@ defmodule QuoteGP.Config do
             mutation_probability: 0.4,
             halt_fitness: 0.0,
             mutation_rate: 0.3,
-            crossover_rate: 0.6,
-            tournament_size: 9
+            crossover_rate: 0.5,
+            random_rate: 0.1,
+            random_constant_range: 10,
+            tournament_size: 9,
+            operators: [
+              "n + n",
+              "n - n",
+              "n * n",
+              "n / n"
+            ]
 end

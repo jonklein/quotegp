@@ -12,14 +12,16 @@ defmodule QuoteGP.Code do
 
   {function, metadata, arity}
   """
-  defmacro operator(ex) do
-    {func, meta, args} = ex
-    Macro.escape({func, Keyword.merge(meta, quotegp_operator: true), length(args)})
+  def operator(ex) do
+    {func, meta, args} = Code.string_to_quoted!(ex)
+    {func, Keyword.merge(meta, quotegp_operator: true), length(args)}
   end
 
   def evaluate(code, bindings) do
     {result, _} =
-      Code.eval_quoted(code, bindings, functions: [{QuoteGP.Code, [/: 2]}] ++ __ENV__.functions)
+      Code.eval_quoted(code, bindings,
+        functions: [{QuoteGP.Code, [/: 2, noop: 1]}] ++ __ENV__.functions
+      )
 
     result
   end
@@ -38,5 +40,9 @@ defmodule QuoteGP.Code do
 
   def x / y do
     Kernel./(x, y)
+  end
+
+  def noop(x) do
+    x
   end
 end

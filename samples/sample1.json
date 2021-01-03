@@ -11,12 +11,12 @@
   ],
   "config": {
     "population_size": 1000,
-    "max_generations": 100,
+    "max_generations": 200,
     "max_program_depth": 10,
-    "mutation_probability": 0.3,
+    "mutation_probability": 0.1,
     "halt_fitness": 0.0,
-    "mutation_rate": 0.3,
-    "crossover_rate": 0.6,
+    "mutation_rate": 0.6,
+    "crossover_rate": 0.2,
     "tournament_size": 9
   }
 }

@@ -5,24 +5,31 @@ defmodule QuoteGP.Generation do
   @doc """
   Builds a code fragment with the maximum depth specified in the config.
   """
-  def code_tree(%QuoteGP.Config{max_program_depth: max_depth}) do
-    tree(max_depth)
+  def tree(config = %QuoteGP.Config{max_program_depth: max_depth}) do
+    tree(config, max_depth)
   end
 
-  def tree(max_depth) when max_depth <= 1 do
-    terminal()
+  def tree(config, max_depth) when max_depth <= 1 do
+    terminal(config)
   end
 
-  def tree(max_depth) do
-    {operator, meta, arity} = Enum.random(operators())
-    List.to_tuple([operator, meta, Enum.map(1..arity, fn _ -> tree(rand(max_depth) - 1) end)])
+  def tree(config, max_depth) do
+    {operator, meta, arity} = Enum.random(operators(config))
+
+    List.to_tuple([
+      operator,
+      meta,
+      Enum.map(1..arity, fn _ -> tree(config, :rand.uniform(max_depth) - 1) end)
+    ])
+
+    # Code.string_to_quoted!("-9 * input * input * input - 1 * input * input + 6 * input - 22")
   end
 
   @doc """
   The depth of the code tree, counting all operators.
   """
   def tree_depth({_, _, args}) when is_list(args) do
-    1 + Enum.max(Enum.map(args, fn a -> tree_depth(a) end))
+    1 + Enum.max(Enum.map(args, &tree_depth(&1)))
   end
 
   def tree_depth(_) do
@@ -33,7 +40,7 @@ defmodule QuoteGP.Generation do
   The number of "points" or nodes (operators and terminals) in the code tree
   """
   def tree_points({_, _, args}) when is_list(args) do
-    1 + Enum.sum(Enum.map(args, fn a -> tree_points(a) end))
+    1 + Enum.sum(Enum.map(args, &tree_points(&1)))
   end
 
   def tree_points(_) do
@@ -83,28 +90,21 @@ defmodule QuoteGP.Generation do
     nil
   end
 
-  def terminal do
-    if(:rand.uniform() < 0.1, do: Code.string_to_quoted!("input"), else: :rand.uniform(20) - 10)
+  def terminal(%QuoteGP.Config{random_constant_range: range}) do
+    # random_constant_range
+    if(:rand.uniform() < 0.1,
+      do: Code.string_to_quoted!("input"),
+      else: :rand.uniform(2 * range) - range
+    )
   end
 
   @doc """
   Defines the basic operators that the GP can use.
 
-  We use the operator macro here to generate an AST chunk for a given expression.
-  Arguments to the expression function are replaced by terminals, so are just
-  placeholders in this usafe.
+  We'll parse the AST for the given string and arguments to the expression
+  function are replaced by terminals, so are just placeholders here
   """
-  def operators do
-    [
-      operator(n + n),
-      operator(n - n),
-      operator(n * n),
-      operator(n / n)
-    ]
-  end
-
-
-  defp rand(i) do
-    :rand.uniform(i + 1) - 1
+  def operators(config) do
+    Enum.map(config.operators, &operator/1)
   end
 end

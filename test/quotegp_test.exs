@@ -7,22 +7,26 @@ defmodule QuoteGPTest do
   end
 
   test "generates code" do
-    assert QuoteGP.Generation.code_tree(config()) !== nil
+    assert QuoteGP.Generation.tree(config()) !== nil
   end
 
   test "mutates code" do
-    assert QuoteGP.GeneticOperators.mutation(QuoteGP.Generation.code_tree(config()), 0.1) !== nil
+    assert QuoteGP.GeneticOperators.mutation(
+             config(),
+             QuoteGP.Generation.tree(config()),
+             0.1
+           ) !== nil
   end
 
   test "crosses over code" do
     assert QuoteGP.GeneticOperators.crossover(
-             QuoteGP.Generation.code_tree(config()),
-             QuoteGP.Generation.code_tree(config())
+             QuoteGP.Generation.tree(config()),
+             QuoteGP.Generation.tree(config())
            ) !== nil
   end
 
   test "runs code with proper binding" do
-    assert Code.eval_quoted(QuoteGP.Generation.code_tree(config()), input: 10) !== nil
+    assert Code.eval_quoted(QuoteGP.Generation.tree(config()), input: 10) !== nil
   end
 
   test "calculates code depth" do
@@ -73,9 +77,12 @@ defmodule QuoteGPTest do
 
   test "tournament select" do
     population = QuoteGP.Population.build(%QuoteGP.Config{})
-    |> QuoteGP.Population.evaluate([{1, 2}, {2, 4}])
 
-    QuoteGP.Population.tournament(population)
+    assert "c" ==
+             QuoteGP.Population.tournament(
+               population.config,
+               [{"a", 1.0}, {"b", 2.0}, {"c", 0.1}]
+             )
   end
 
   test "runs a generation" do
