@@ -21,13 +21,13 @@
   "config": {
     "population_size": 1000,
     "max_generations": 200,
-    "max_program_depth": 15,
-    "mutation_probability": 0.1,
+    "max_program_depth": 12,
+    "mutation_probability": 0.15,
     "halt_fitness": 0.0,
     "mutation_rate": 0.6,
     "crossover_rate": 0.3,
     "random_rate": 0.05,
     "random_constant_range": 30,
-    "tournament_size": 30
+    "tournament_size": 16
   }
 }

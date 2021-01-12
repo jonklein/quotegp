@@ -21,8 +21,6 @@ defmodule QuoteGP.Generation do
       meta,
       Enum.map(1..arity, fn _ -> tree(config, :rand.uniform(max_depth) - 1) end)
     ])
-
-    # Code.string_to_quoted!("-9 * input * input * input - 1 * input * input + 6 * input - 22")
   end
 
   @doc """
@@ -90,9 +88,9 @@ defmodule QuoteGP.Generation do
     nil
   end
 
-  def terminal(%QuoteGP.Config{random_constant_range: range}) do
+  def terminal(%QuoteGP.Config{random_constant_range: range, terminal_input_probability: terminal}) do
     # random_constant_range
-    if(:rand.uniform() < 0.1,
+    if(:rand.uniform() < terminal,
       do: Code.string_to_quoted!("input"),
       else: :rand.uniform(2 * range) - range
     )

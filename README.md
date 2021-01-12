@@ -59,3 +59,4 @@ For more advanced usage, configure a GP run with the following options (shown wi
 - crossover_rate: 0.3, 
 - tournament_size: the number of individuals in a "tournament" selection event 
 
+## Other Classes of Problems

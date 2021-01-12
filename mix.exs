@@ -8,7 +8,7 @@ defmodule Quotegp.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-    escript: [main_module: QuoteGP.CLI]
+      escript: [main_module: QuoteGP.CLI]
     ]
   end
 
@@ -19,11 +19,11 @@ defmodule Quotegp.MixProject do
     ]
   end
 
-
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:jason, "~> 1.2.2"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false}
     ]
   end

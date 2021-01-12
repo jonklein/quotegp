@@ -34,14 +34,14 @@ defmodule QuoteGP.Population do
     # The fitness for an individual is the sum of the squares of the errors
     # (expected output minus actual)
 
-    size_scalar = max(1.0, QuoteGP.Generation.tree_points(individual) / 400.0)
+    size_scalar = max(1.0, QuoteGP.Generation.tree_points(individual) / 200.0)
 
     try do
       cases
       |> Enum.map(fn {input, output} ->
-        (output - QuoteGP.Code.evaluate(individual, input: input)) * size_scalar
+        output - QuoteGP.Code.evaluate(individual, input: input)
       end)
-      |> Enum.map(&(&1 * &1))
+      |> Enum.map(&(&1 * &1 * size_scalar))
       |> Enum.sum()
     rescue
       err ->

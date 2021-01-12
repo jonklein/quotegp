@@ -19,10 +19,15 @@ defmodule QuoteGPTest do
   end
 
   test "crosses over code" do
+    a = quote do: 1 + 1 + 1
+    b = quote do: 2 + 2 + 2
+
     assert QuoteGP.GeneticOperators.crossover(
-             QuoteGP.Generation.tree(config()),
-             QuoteGP.Generation.tree(config())
-           ) !== nil
+             a,
+             b
+           )
+           |> Macro.to_string()
+           |> IO.inspect() !== nil
   end
 
   test "runs code with proper binding" do
@@ -76,7 +81,7 @@ defmodule QuoteGPTest do
   end
 
   test "tournament select" do
-    population = QuoteGP.Population.build(%QuoteGP.Config{})
+    population = QuoteGP.Population.build(%QuoteGP.Config{tournament_size: 3})
 
     assert "c" ==
              QuoteGP.Population.tournament(
