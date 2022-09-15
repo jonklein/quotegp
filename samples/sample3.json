@@ -19,7 +19,7 @@
     [16, -16822]
   ],
   "config": {
-    "population_size": 1000,
+    "population_size": 2000,
     "max_generations": 200,
     "max_program_depth": 12,
     "mutation_probability": 0.15,
@@ -28,6 +28,6 @@
     "crossover_rate": 0.3,
     "random_rate": 0.05,
     "random_constant_range": 30,
-    "tournament_size": 16
+    "tournament_size": 8
   }
 }

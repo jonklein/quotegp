@@ -75,7 +75,7 @@ defmodule QuoteGP.Population do
     {individuals, best, best_fitness} = generation(population, cases)
 
     IO.puts(
-      "=== Generation #{population.generation} best fitness: #{best_fitness} - individual: #{best}"
+      "=== Generation #{population.generation} best fitness: #{best_fitness} - program: #{best}"
     )
 
     next = %{population | individuals: individuals, generation: population.generation + 1}
